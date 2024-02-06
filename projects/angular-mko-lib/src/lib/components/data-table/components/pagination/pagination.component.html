@@ -1,0 +1,23 @@
+<div class="pagination">
+  <div class="pagination-wrapper">
+    <select [ngModel]="_limit" (ngModelChange)="selectPageSize($event)">
+      <option *ngFor="let size of pageSizes" [value]="size">{{ size }}</option>
+    </select>
+    <span> of {{ total }} items</span>
+  </div>
+  <div class="pagination-wrapper">
+    <button [disabled]="_page === 1" (click)="selectPage(1)">&#171;</button>
+    <button [disabled]="_page === 1" (click)="selectPage(_page - 1)">
+      &#8249;
+    </button>
+    <button *ngFor="let page of visiblePages" [class.selected]="_page === page" (click)="selectPage(page)">
+      {{ page }}
+    </button>
+    <button [disabled]="_page === total" (click)="selectPage(_page + 1)">
+      &#8250;
+    </button>
+    <button [disabled]="_page === total" (click)="selectPage(total)">
+      &#187;
+    </button>
+  </div>
+</div>

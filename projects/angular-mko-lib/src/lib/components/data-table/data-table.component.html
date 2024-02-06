@@ -1,0 +1,48 @@
+<ng-container *ngIf="!(loading$ | async); else pendingTextTmpl">
+    <h2 *ngIf="header">{{ header }}</h2>
+
+    <ng-container *ngIf="dataSource.length; else notFoundTextTmpl">
+        <table class="data-table" [attr.data-id]="tableId" [cellPadding]="10">
+            <thead>
+                <tr>
+                    <th (click)="onCellHeaderClicked(column.propName || dataSourceColumns[i])"
+                        *ngFor="let column of columns; let i = index">
+                        <div class="table-header-wrapper">
+                            {{ column.header || dataSourceColumns[i] }}
+                            <span class="sort-icon" *ngIf="filters.order?.by === (column.propName || dataSourceColumns[i])">
+                                <ng-container
+                                    *ngIf="filters.order?.type === 'asc'; else sortDesc">&#8595;</ng-container>
+                                <ng-template #sortDesc>&#8593;</ng-template>
+                            </span>
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let row of dataSource" (click)="onRowClicked(row)">
+                    <td *ngFor="let column of columns; let i = index">
+                        <ng-container *ngIf="column.component; else staticCell">
+                            <div cellRendererComponent [componentType]="column.component"
+                                [cellData]="row[column.propName || dataSourceColumns[i]]">
+                            </div>
+                        </ng-container>
+                        <ng-template #staticCell>
+                            {{ row[column.propName || dataSourceColumns[i]] }}
+                        </ng-template>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <app-pagination [page]="filters.page" [limit]="filters.limit" [total]="paginationTotal"
+            (change)="onPageChange($event)"></app-pagination>
+    </ng-container>
+</ng-container>
+
+<ng-template #notFoundTextTmpl>
+    <span *ngIf="messageNotFound">{{ messageNotFound }}</span>
+</ng-template>
+
+<ng-template #pendingTextTmpl>
+    <span *ngIf="messagePending">{{ messagePending }}</span>
+</ng-template>
