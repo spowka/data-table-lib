@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, Output, OnInit, OnDestroy, EventEmitter, InjectionToken, Injector } from '@angular/core';
 import { HttpClientModule, HttpErrorResponse } from '@angular/common/http';
 import { Event, Router, RoutesRecognized } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { Observable, filter, map, take } from 'rxjs';
 
@@ -146,6 +147,7 @@ export class DataTableComponent implements OnInit, OnDestroy {
  */
   private fetchData() {
     this.tableService.fetchData(this.filters)
+      .pipe(takeUntilDestroyed())
       .subscribe({
         next: (response: GridResponseInterface) => {
           this.paginationTotal = response.total;
