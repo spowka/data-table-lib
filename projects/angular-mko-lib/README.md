@@ -38,7 +38,7 @@ export class AppComponent {}
 
 ```typescript
 export class AppComponent {
-  public token = "..."; // Path to your API url
+  public token = DATA_SERVICE_TOKEN; // InjectionToken of your service
   public columns: ColumnPropertiesInterface[] = [
     { display: true, order: 1, header: 'ID', propName: 'id', sorting: true },
     // Add more columns as needed
@@ -96,17 +96,22 @@ onClickByRowEvent(event: ClickByRowEventInterface): void {
   console.log('Row Clicked:', event);
 }
 
+// Lifecycle hook of library which includes API callback
 onGridReady(api: GridApi) {
+  // Force load the data in case if token provided with input parameter
+  api.getData();
+
+  // Force load the data using the provided token (will replace token passed by input parameter if provided)
   api.getData(this.token);
 }
 ```
 If you prefer an alternate way to fetch data or force data loading, utilize the `api` callback with the `getData` method. This can be useful when `autoLoading` is not provided.<br>
 **Note**: Library provides `api` callback with `getData` method which accepts `token`.<br>
-*If token Input paramter provided then token bindig via getData will be ignored.*
+*If token (argument) binding via getData provided then binding token with @Input property will be ignored or replaced.*
 
 ### Input Options
 
-- **token** (string): Bind a token (url) for fetching data.
+- **token** (InjectionToken\<GridInjectionService>): Bind a token for fetching data.
 - **autoLoading** (boolean, default: `false`): Enable or disable automatic data loading after table initialization.
 - **messageNotFound** (string): The message displayed when no data is found.
 - **messagePending** (string): The message displayed while data is being loaded.
@@ -128,9 +133,8 @@ If you prefer an alternate way to fetch data or force data loading, utilize the 
 The library supports automatic URL navigation for actions like sorting, navigation, and fetching data. The URL structure follows this pattern:
 
 ```
-YOUR_WEBSITE_URL/?_page=1&_per_page=10&_sort=id
+YOUR_WEBSITE_URL/?page=1&limit=25&order%5Bby%5D=created&order%5Btype%5D=desc
 ```
-**Note:** use `id` for asc and `-id` for desc.
 
 Refreshing the page with this URL will result in the table rendering based on the specified parameters.
 

@@ -1,7 +1,10 @@
+import { InjectionToken } from "@angular/core";
+import { GridInjectionService } from "./table-injection-service.model";
+
 export interface GridApi {
   /**
-   * Method to retrieve data based on a provided token.
-   * @param {string} token - Token used for data retrieval.
+   * Retrieves data for the data grid.
+   * @param {InjectionToken<GridInjectionService>} token - An optional GridInjectionService token to set or replace for data retrieval.
    */
-  getData(token: string): void;
+  getData(token?: InjectionToken<GridInjectionService>): void;
 }

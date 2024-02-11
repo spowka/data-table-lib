@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, Output, OnInit, OnDestroy, EventEmitter } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, Output, OnInit, OnDestroy, EventEmitter, InjectionToken, Injector } from '@angular/core';
 import { HttpClientModule, HttpErrorResponse } from '@angular/common/http';
 import { Event, Router, RoutesRecognized } from '@angular/router';
 
@@ -15,12 +15,14 @@ import {
   EmptyEventInterface,
   ErrorEventInterface,
   GridApi,
+  GridInjectionService,
   GridRequestInterface,
   UpdatedEventInterface
 } from '../../models';
 import { ColumnPropertiesInterface } from '../../models/column-properties.model';
 import { GridResponseInterface } from '../../models/table-response.model';
 import { PaginationValue } from './components/pagination/models/pagination-value.model';
+import { convertParamsToGridRequest } from '../../helpers/uri-component.helper';
 
 @Component({
   selector: 'app-table',
@@ -37,7 +39,7 @@ import { PaginationValue } from './components/pagination/models/pagination-value
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DataTableComponent implements OnInit, OnDestroy {
-  @Input() token?: string;
+  @Input() token?: InjectionToken<GridInjectionService>;
 
   @Input() autoLoading: boolean;
   @Input() messageNotFound: string;
@@ -66,6 +68,7 @@ export class DataTableComponent implements OnInit, OnDestroy {
     private cd: ChangeDetectorRef,
     private tableInstances: TableInstancesService,
     private router: Router,
+    private injector: Injector,
   ) {
     this.loading$ = this.tableService.loading$;
     this.filters = { page: 1, limit: 10 };
@@ -83,7 +86,7 @@ export class DataTableComponent implements OnInit, OnDestroy {
 
       if (this.token) {
         // Store the provided token in the associated table service.
-        this.tableService.setToken(this.token);
+        this.tableService.setTokenService(this.injectTokenService(this.token));
 
         if (this.autoLoading) {
           this.fetchData();
@@ -142,11 +145,11 @@ export class DataTableComponent implements OnInit, OnDestroy {
  * @private
  */
   private fetchData() {
-    this.tableService.fetchDataByToken(this.filters)
+    this.tableService.fetchData(this.filters)
       .subscribe({
         next: (response: GridResponseInterface) => {
-          this.paginationTotal = response.items;
-          this.initDataSource(response.data);
+          this.paginationTotal = response.total;
+          this.initDataSource(response.results);
         },
         error: this.handleError.bind(this)
       });
@@ -191,28 +194,23 @@ export class DataTableComponent implements OnInit, OnDestroy {
           const params = (event as RoutesRecognized).state.root.queryParams;
 
           if (Boolean(Object.keys(params).length)) {
-            const filters: GridRequestInterface = {
-              page: Number(params['_page']),
-              limit: Number(params['_per_page']),
-            };
-
-            if (params['_sort']) {
-              // Determine sorting order based on whether the parameter starts with '-'.
-              const isDescending = params['_sort'].startsWith('-');
-
-              filters.order = {
-                by: isDescending ? params['_sort'].substring(1) : params['_sort'],
-                type: isDescending ? 'desc' : 'asc'
-              };
-            }
-
-            return filters;
+            return convertParamsToGridRequest(params);
           }
 
           // Return null if no query parameters are found.
           return null;
         })
       )
+  }
+
+  /**
+   * Injects and retrieves an instance of GridInjectionService using Angular's dependency injection system.
+   * This function is intended to be used for injecting services that are identified by an InjectionToken.
+   * @returns An instance of GridInjectionService obtained from the Angular injector.
+   * @throws If the injection token (this.token) does not correspond to a valid provider.
+   */
+  private injectTokenService(token: InjectionToken<GridInjectionService>): GridInjectionService {
+    return this.injector.get(token);
   }
 
   /**
@@ -234,12 +232,12 @@ export class DataTableComponent implements OnInit, OnDestroy {
     this.tableId = `table-${this.tableInstances.getCount()}`;
 
     const gridApi: GridApi = {
-      getData: (token: string) => {
-        this.tableService.setToken(token);
-
-        if (this.autoLoading) {
-          this.fetchData();
+      getData: (token?: InjectionToken<GridInjectionService>) => {
+        if (token) {
+          this.tableService.setTokenService(this.injectTokenService(token));
         }
+
+        this.fetchData();
       },
     };
 

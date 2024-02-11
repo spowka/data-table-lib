@@ -1,14 +1,9 @@
 import { HttpErrorResponse } from "@angular/common/http";
+import { GridResponseInterface } from "./table-response.model";
 
 /**
 * The response from the server is always in this format
 */
-interface GridResponseInterface<T = any> {
-    total: number;
-    results: Array<T>;
-    page: number;
-}
-
 export interface ClickByRowEventInterface<T = any> {
     id: string; // Table ID
     data: T;

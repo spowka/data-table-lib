@@ -1,38 +1,14 @@
-
-
-export interface GridResponseInterface {
-    /**
-     * An array containing the data for the current page.
-     */
-    data: any[];
-
-    /**
-     * The index of the first item on the current page.
-     */
-    first: number;
-
+export interface GridResponseInterface<T = any> {
     /**
      * The total number of items across all pages.
      */
-    items: number;
-
+    total: number;
     /**
-     * The index of the last item on the current page.
+     * An array containing the data for the current page.
      */
-    last: number;
-
+    results: Array<T>;
     /**
-     * The index of the next page.
+     * The index of the current page.
      */
-    next: number;
-
-    /**
-     * The total number of pages.
-     */
-    pages: number;
-
-    /**
-     * The index of the previous page.
-     */
-    prev: number;
+    page: number;
 }
