@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, Output, OnInit, OnDestroy, EventEmitter, InjectionToken, Injector } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, Output, OnInit, OnDestroy, EventEmitter, InjectionToken, Injector, inject, DestroyRef } from '@angular/core';
 import { HttpClientModule, HttpErrorResponse } from '@angular/common/http';
 import { Event, Router, RoutesRecognized } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -70,6 +70,7 @@ export class DataTableComponent implements OnInit, OnDestroy {
     private tableInstances: TableInstancesService,
     private router: Router,
     private injector: Injector,
+    private destroyRef: DestroyRef,
   ) {
     this.loading$ = this.tableService.loading$;
     this.filters = { page: 1, limit: 10 };
@@ -147,7 +148,7 @@ export class DataTableComponent implements OnInit, OnDestroy {
  */
   private fetchData() {
     this.tableService.fetchData(this.filters)
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: GridResponseInterface) => {
           this.paginationTotal = response.total;
